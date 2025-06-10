@@ -1,0 +1,249 @@
+import 'dart:typed_data';
+
+import 'package:slip_0021/slip_0021.dart';
+import 'package:test/test.dart';
+
+void main() {
+  // Test seed: binary seed from BIP-39 mnemonic "all all all all all all all all all all all all" with empty passphrase
+  final seed = Uint8List.fromList([
+    0xc7,
+    0x6c,
+    0x4a,
+    0xc4,
+    0xf4,
+    0xe4,
+    0xa0,
+    0x0d,
+    0x6b,
+    0x27,
+    0x4d,
+    0x5c,
+    0x39,
+    0xc7,
+    0x00,
+    0xbb,
+    0x4a,
+    0x7d,
+    0xdc,
+    0x04,
+    0xfb,
+    0xc6,
+    0xf7,
+    0x8e,
+    0x85,
+    0xca,
+    0x75,
+    0x00,
+    0x7b,
+    0x5b,
+    0x49,
+    0x5f,
+    0x74,
+    0xa9,
+    0x04,
+    0x3e,
+    0xeb,
+    0x77,
+    0xbd,
+    0xd5,
+    0x3a,
+    0xa6,
+    0xfc,
+    0x3a,
+    0x0e,
+    0x31,
+    0x46,
+    0x22,
+    0x70,
+    0x31,
+    0x6f,
+    0xa0,
+    0x4b,
+    0x8c,
+    0x19,
+    0x11,
+    0x4c,
+    0x87,
+    0x98,
+    0x70,
+    0x6c,
+    0xd0,
+    0x2a,
+    0xc8,
+  ]);
+
+  // Expected keys
+  final expectedMasterKey = Uint8List.fromList([
+    0xdb,
+    0xf1,
+    0x2b,
+    0x44,
+    0x13,
+    0x3e,
+    0xaa,
+    0xb5,
+    0x06,
+    0xa7,
+    0x40,
+    0xf6,
+    0x56,
+    0x5c,
+    0xc1,
+    0x17,
+    0x22,
+    0x8c,
+    0xbf,
+    0x1d,
+    0xd7,
+    0x06,
+    0x35,
+    0xcf,
+    0xa8,
+    0xdd,
+    0xfd,
+    0xc9,
+    0xaf,
+    0x73,
+    0x47,
+    0x56,
+  ]);
+  final expectedSlip0021Key = Uint8List.fromList([
+    0x1d,
+    0x06,
+    0x5e,
+    0x3a,
+    0xc1,
+    0xbb,
+    0xe5,
+    0xc7,
+    0xfa,
+    0xd3,
+    0x2c,
+    0xf2,
+    0x30,
+    0x5f,
+    0x7d,
+    0x70,
+    0x9d,
+    0xc0,
+    0x70,
+    0xd6,
+    0x72,
+    0x04,
+    0x4a,
+    0x19,
+    0xe6,
+    0x10,
+    0xc7,
+    0x7c,
+    0xdf,
+    0x33,
+    0xde,
+    0x0d,
+  ]);
+  final expectedMasterEncryptionKey = Uint8List.fromList([
+    0xea,
+    0x16,
+    0x31,
+    0x30,
+    0xe3,
+    0x5b,
+    0xba,
+    0xfd,
+    0xf5,
+    0xdd,
+    0xee,
+    0x97,
+    0xa1,
+    0x7b,
+    0x39,
+    0xce,
+    0xf2,
+    0xbe,
+    0x4b,
+    0x4f,
+    0x39,
+    0x01,
+    0x80,
+    0xd6,
+    0x5b,
+    0x54,
+    0xcf,
+    0x05,
+    0xc6,
+    0xa8,
+    0x2f,
+    0xde,
+  ]);
+  final expectedAuthenticationKey = Uint8List.fromList([
+    0x47,
+    0x19,
+    0x4e,
+    0x93,
+    0x8a,
+    0xb2,
+    0x4c,
+    0xc8,
+    0x2b,
+    0xfa,
+    0x25,
+    0xf6,
+    0x48,
+    0x6e,
+    0xd5,
+    0x4b,
+    0xeb,
+    0xe7,
+    0x9c,
+    0x40,
+    0xae,
+    0x2a,
+    0x5a,
+    0x32,
+    0xea,
+    0x6d,
+    0xb2,
+    0x94,
+    0xd8,
+    0x18,
+    0x61,
+    0xa6,
+  ]);
+
+  group('Node Tests', () {
+    test('Master node key derivation', () {
+      final masterNode = Slip21Node.newMaster(seed);
+      expect(masterNode.key, equals(expectedMasterKey));
+    });
+
+    test('Derive child node: SLIP-0021', () {
+      final masterNode = Slip21Node.newMaster(seed);
+      final slip0021Node = masterNode.deriveChild(
+        Uint8List.fromList('SLIP-0021'.codeUnits),
+      );
+      expect(slip0021Node.key, equals(expectedSlip0021Key));
+    });
+
+    test('Derive child node: SLIP-0021/Master encryption key', () {
+      final masterNode = Slip21Node.newMaster(seed);
+      final slip0021Node = masterNode.deriveChild(
+        Uint8List.fromList('SLIP-0021'.codeUnits),
+      );
+      final encryptionKeyNode = slip0021Node.deriveChild(
+        Uint8List.fromList('Master encryption key'.codeUnits),
+      );
+      expect(encryptionKeyNode.key, equals(expectedMasterEncryptionKey));
+    });
+
+    test('Derive child node: SLIP-0021/Authentication key', () {
+      final masterNode = Slip21Node.newMaster(seed);
+      final slip0021Node = masterNode.deriveChild(
+        Uint8List.fromList('SLIP-0021'.codeUnits),
+      );
+      final authKeyNode = slip0021Node.deriveChild(
+        Uint8List.fromList('Authentication key'.codeUnits),
+      );
+      expect(authKeyNode.key, equals(expectedAuthenticationKey));
+    });
+  });
+}
