@@ -28,7 +28,10 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  slip_0021: ^1.0.0
+  slip_0021:
+    git:
+      url: https://github.com/mooze-labs/slip-21-dart.git
+      ref: main  # or the specific branch/tag you want to use
 ```
 
 ## Usage
@@ -125,6 +128,22 @@ SLIP-0021 defines a hierarchical deterministic key derivation scheme for symmetr
    - Message: A zero byte followed by the label
 
 3. The symmetric key for any node is the second 32 bytes of its HMAC output.
+
+## Development
+
+To use this package in development:
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/mooze-labs/slip-21-dart.git
+   ```
+
+2. Add it to your project's dependencies in `pubspec.yaml`:
+   ```yaml
+   dependencies:
+     slip_0021:
+       path: ../path/to/slip-0021
+   ```
 
 ## License
 
